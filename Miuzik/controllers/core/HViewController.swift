@@ -9,8 +9,8 @@ import UIKit
 
 enum BrowseSectionType {
     case newReleases(viewModels: [NewReleasesCellVM])
-    case featuredTracks(viewModels: [NewReleasesCellVM])
-    case recommendedTracks(viewModels: [NewReleasesCellVM])
+    case featuredPlaylists(viewModels: [FeaturedPlaylistCellVM])
+    case recommendedTracks(viewModels: [RecommendedTrackCellVM])
 }
 
 class HViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
@@ -19,7 +19,7 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
         switch type {
             case .newReleases(let viewModels):
                 return viewModels.count
-            case .featuredTracks(let viewModels):
+            case .featuredPlaylists(let viewModels):
                 return viewModels.count
             case .recommendedTracks(let viewModels):
                 return viewModels.count
@@ -43,14 +43,14 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
             let viewModel = viewModels[indexPath.row]
             cell.configure(with: viewModel)
             return cell
-        case .featuredTracks(let viewModels):
+        case .featuredPlaylists(let viewModels):
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier,
                 for: indexPath
             ) as? FeaturedPlaylistCollectionViewCell else {
                 return UICollectionViewCell()
             }
-            cell.backgroundColor = .blue
+            cell.configure(with: viewModels[indexPath.row])
             return cell
         case .recommendedTracks(let viewModels):
             guard let cell = collectionView.dequeueReusableCell(
@@ -59,7 +59,7 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
             ) as? RecommendedTracksCollectionViewCell else {
                 return UICollectionViewCell()
             }
-            cell.backgroundColor = .orange
+            cell.configure(with: viewModels[indexPath.row])
             return cell
     }
     }
@@ -314,8 +314,17 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
                 artistName: $0.artists.first?.name ?? ""
             )
         })))
-        sections.append(.featuredTracks(viewModels: []))
-        sections.append(.recommendedTracks(viewModels: []))
+        sections.append(.featuredPlaylists(viewModels: playlists.compactMap({
+            return FeaturedPlaylistCellVM(
+                name: $0.name,
+                artworkURL: URL(string: $0.images.first?.url ?? ""),
+                creatorName: $0.owner.display_name)
+        })))
+        sections.append(.recommendedTracks(viewModels: tracks.compactMap({
+            return RecommendedTrackCellVM(name: $0.name,
+                                          artistName: $0.artists.first?.name ?? "_-_",
+                                          artworkURL: URL(string: $0.album.images.first?.url ?? ""))
+        })))
         collectionView.reloadData()
     }
     

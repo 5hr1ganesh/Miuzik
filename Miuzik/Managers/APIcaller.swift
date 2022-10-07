@@ -44,7 +44,7 @@ final class APIcaller{
     }
     
     public func getNewReleases(completion: @escaping((Result<NewReleasesResponse, Error>)) -> Void){
-        createRequest(with: URL(string: Constants.baseAPIURL + "/browse/new-releases?limit=50"), type: .GET) { request in
+        createRequest(with: URL(string: Constants.baseAPIURL + "/browse/new-releases?limit=48"), type: .GET) { request in
             let task = URLSession.shared.dataTask(with: request) { data, _, error in
                 guard let data = data, error == nil else {
                     completion(.failure(APIError.failedtogetDATA))
@@ -67,7 +67,7 @@ final class APIcaller{
     
     public func getFeaturedPlaylist(completion: @escaping((Result<FeaturedPlaylistResponse, Error>)) -> Void) {
         createRequest(
-            with: URL(string: Constants.baseAPIURL + "/browse/featured-playlists?limit=2"),
+            with: URL(string: Constants.baseAPIURL + "/browse/featured-playlists?limit=20"),
             type: .GET
         ) { request in
             
