@@ -14,6 +14,9 @@ enum BrowseSectionType {
 }
 
 class HViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    private var newAlbum: [Album] = []
+    private var playlists: [Playlist] = []
+    private var tracks: [AudioTrack] = []
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let type = sections[section]
         switch type {
@@ -62,6 +65,30 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
             cell.configure(with: viewModels[indexPath.row])
             return cell
     }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let section = sections[indexPath.section]
+        switch section{
+            
+        case.newReleases:
+            let album = newAlbum[indexPath.row]
+            let vc = AlbumViewController(album: album)
+            vc.title = album.name
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+            
+        case.featuredPlaylists:
+            let playlist = playlists[indexPath.row]
+            let vc = PlaylistViewController(playlist: playlist)
+            vc.title = playlist.name
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+            
+        case.recommendedTracks:
+            break
+        }
     }
     
     
@@ -297,11 +324,16 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
         
     }
     
+
+    
     private func configureModels(
         newAlbum: [Album],
         playlists: [Playlist],
         tracks: [AudioTrack]
     ) {
+        self.newAlbum = newAlbum
+        self.playlists = playlists
+        self.tracks = tracks
         print(newAlbum.count)
         print(playlists.count)
         print(tracks.count)
@@ -323,7 +355,7 @@ class HViewController: UIViewController, UICollectionViewDataSource, UICollectio
         sections.append(.recommendedTracks(viewModels: tracks.compactMap({
             return RecommendedTrackCellVM(name: $0.name,
                                           artistName: $0.artists.first?.name ?? "_-_",
-                                          artworkURL: URL(string: $0.album.images.first?.url ?? ""))
+                                          artworkURL: URL(string: $0.album?.images.first?.url ?? ""))
         })))
         collectionView.reloadData()
     }
