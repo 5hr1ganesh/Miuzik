@@ -77,6 +77,3 @@ class RecommendedTracksCollectionViewCell: UICollectionViewCell {
         albumCoverImageView.sd_setImage(with: viewModel.artworkURL, completed: nil)
     }
 }
-
-
-
