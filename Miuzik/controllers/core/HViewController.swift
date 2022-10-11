@@ -163,10 +163,7 @@ class HViewController: UIViewController {
         group.notify(queue: .main) {
             guard let releases = newReleases?.albums.items,
                   let playlists = featuredPlaylist?.playlists.items,
-                  let tracks = recommendations?.tracks else {
-                fatalError("Models are nil")
-                return
-            }
+                  let tracks = recommendations?.tracks else { fatalError("Models are nil") }
             print("Configuring viewmodels")
             self.configureModels(newAlbum: releases, playlists: playlists, tracks: tracks)
         }
@@ -291,6 +288,8 @@ extension HViewController: UICollectionViewDataSource, UICollectionViewDelegate 
             navigationController?.pushViewController(vc, animated: true)
             
         case.recommendedTracks:
+            let track = tracks[indexPath.row]
+            PlayBackPresenter.shared.startPlayback(from: self, track: track)
             break
         }
     }

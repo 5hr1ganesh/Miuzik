@@ -60,7 +60,7 @@ class PlaylistViewController: UIViewController {
     }
     
     private var viewmodel = [RecommendedTrackCellVM]()
-    
+    private var tracks = [AudioTrack]()
     override func viewDidLoad() {
         super.viewDidLoad()
         title = playlist.name
@@ -83,6 +83,7 @@ class PlaylistViewController: UIViewController {
                 switch result{
                 case.success(let model):
                     //RecommendedTrackCellVM
+                    self?.tracks = model.tracks.items.compactMap({$0.track})
                     self?.viewmodel = model.tracks.items.compactMap({
                         RecommendedTrackCellVM(
                             name: $0.track.name,
@@ -156,18 +157,20 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
         header.configure(with: headerViewModel)
         header.delegate = self
         return header
-        //Play song
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        let index = indexPath.row
+        let track = tracks[index]
+        PlayBackPresenter.shared.startPlayback(from: self, track: track)
     }
 }
 
 extension PlaylistViewController: PlaylistheaderCollectionReusableViewDelegate {
     func playlistheaderCollectionReusableViewDidTapPlayAll(_ header: PlaylistheaderCollectionReusableView) {
-        // start playing
-        print("Playing all")
+        PlayBackPresenter.shared.startPlayback(from: self, tracks: tracks)
     }
 }
 
