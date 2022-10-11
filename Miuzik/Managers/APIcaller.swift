@@ -20,7 +20,7 @@ final class APIcaller{
     }
     
     
-    //Albums
+    // Marks: - Albums
     public func getAlbumDetails(for album: Album, completion: @escaping(Result<Albumdetailsres, Error>) -> Void){
         createRequest(with: URL(string: Constants.baseAPIURL + "/albums/" + album.id),
                       type: .GET) { request in
@@ -42,9 +42,52 @@ final class APIcaller{
         }
     }
     
+    public func getCurrentUserAlbums(completion: @escaping (Result<[Album], Error>) -> Void) {
+        createRequest(
+            with: URL(string: Constants.baseAPIURL + "/me/albums"),
+            type: .GET
+        ) { request in
+            let task = URLSession.shared.dataTask(with: request) { data, _, error in
+                guard let data = data, error == nil else {
+                    completion(.failure(APIError.failedtogetDATA))
+                    return
+                }
+
+                do {
+                    let result = try JSONDecoder().decode(LibraryAlbumsResponse.self, from: data)
+                    completion(.success(result.items.compactMap({ $0.album })))
+                }
+                catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func saveAlbum(album: Album, completion: @escaping (Bool) -> Void) {
+        createRequest(
+            with: URL(string: Constants.baseAPIURL + "/me/albums?ids=\(album.id)"),
+            type: .PUT
+        ) { baseRequest in
+            var request = baseRequest
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let code = (response as? HTTPURLResponse)?.statusCode,
+                      error == nil else {
+                    completion(false)
+                    return
+                }
+                print(code)
+                completion(code == 200)
+            }
+            task.resume()
+        }
+    }
     
     
-    //Playlists
+    // Marks: - Playlists
     
     public func getPlaylistDetails(for playlist: Playlist, completion: @escaping(Result<Playlistdetailsres, Error>) -> Void){
         createRequest(with: URL(string: Constants.baseAPIURL + "/playlists/" + playlist.id),
@@ -74,7 +117,7 @@ final class APIcaller{
         ) { request in
             let task = URLSession.shared.dataTask(with: request) { data, _, error in
                 guard let data = data, error == nil else {
-                    completion(.failure(APIError.failedToGetData))
+                    completion(.failure(APIError.failedtogetDATA))
                     return
                 }
 
@@ -161,8 +204,7 @@ final class APIcaller{
                 do {
                     let result = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
                         print(result)
-                    if let response = result as? [String: Any],
-                       response["snapshot_id"] as? String != nil {
+                    if let response = result as? [String: Any], response["snapshot_id"] as? String != nil {
                         completion(true)
                     }
                     else {
@@ -443,15 +485,13 @@ final class APIcaller{
     
     
     // MARK: - Private
-    
     enum HTTPMethod: String {
         case GET
+        case PUT
         case POST
-        
+        case DELETE
     }
-    
-    
-    
+
     private func createRequest(
         with url: URL?,
         type: HTTPMethod,
@@ -462,11 +502,11 @@ final class APIcaller{
                 return
             }
             var request = URLRequest(url: apiURL)
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer \(token)",
+                             forHTTPHeaderField: "Authorization")
             request.httpMethod = type.rawValue
             request.timeoutInterval = 30
             completion(request)
-            
         }
     }
 }

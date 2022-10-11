@@ -58,11 +58,61 @@ class HViewController: UIViewController {
         configureCollectionView()
         view.addSubview(spinner)
         fetchData()
+        addLongTapGesture()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         collectionView.frame = view.bounds
+    }
+    
+    private func addLongTapGesture() {
+        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress(_:)))
+        collectionView.isUserInteractionEnabled = true
+        collectionView.addGestureRecognizer(gesture)
+    }
+    
+    @objc func didLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else {
+            return
+        }
+
+        let touchPoint = gesture.location(in: collectionView)
+        print("point: \(touchPoint)")
+
+        guard let indexPath = collectionView.indexPathForItem(at: touchPoint),
+              indexPath.section == 2 else {
+            return
+        }
+
+        let model = tracks[indexPath.row]
+
+        let actionSheet = UIAlertController(
+            title: model.name,
+            message: "Would you like to add this to a playlist?",
+            preferredStyle: .actionSheet
+        )
+
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+        actionSheet.addAction(UIAlertAction(title: "Add to Playlist", style: .default, handler: { [weak self] _ in
+            DispatchQueue.main.async {
+                let vc = LibraryPlaylistsViewController()
+                vc.selectionHandler = { playlist in
+                    APIcaller.shared.addTrackToPlaylist(
+                        track: model,
+                        playlist: playlist
+                    ) { success in
+                        print("Added to playlist success: \(success)")
+                    }
+                }
+                vc.title = "Select Playlist"
+                self?.present(UINavigationController(rootViewController: vc),
+                              animated: true, completion: nil)
+            }
+        }))
+
+        present(actionSheet, animated: true)
     }
     
     private func configureCollectionView() {
@@ -189,7 +239,7 @@ class HViewController: UIViewController {
                 name: $0.name,
                 artworkURL: URL(string: $0.images.first?.url ?? ""),
                 numberOfTracks: $0.total_tracks,
-                artistName: $0.artists.first?.name ?? ""
+                artistName: $0.artists.first?.name ?? "-"
             )
         })))
         sections.append(.featuredPlaylists(viewModels: playlists.compactMap({
@@ -201,7 +251,7 @@ class HViewController: UIViewController {
         sections.append(.recommendedTracks(viewModels: tracks.compactMap({
             return RecommendedTrackCellVM(
                 name: $0.name,
-                artistName: $0.artists.first?.name ?? "_-_",
+                artistName: $0.artists.first?.name ?? "-",
                 artworkURL: URL(string: $0.album?.images.first?.url ?? ""))
         })))
         collectionView.reloadData()
@@ -270,6 +320,7 @@ extension HViewController: UICollectionViewDataSource, UICollectionViewDelegate 
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        HapticsManager.shared.vibrateForSelection()
         let section = sections[indexPath.section]
         switch section{
             
@@ -290,7 +341,7 @@ extension HViewController: UICollectionViewDataSource, UICollectionViewDelegate 
         case.recommendedTracks:
             let track = tracks[indexPath.row]
             PlayBackPresenter.shared.startPlayback(from: self, track: track)
-            break
+//            break
         }
     }
     
@@ -372,7 +423,7 @@ extension HViewController: UICollectionViewDataSource, UICollectionViewDelegate 
                 subitem: verticalGroup,
                 count: 1)
             //section
-            let section = NSCollectionLayoutSection(group: verticalGroup)
+            let section = NSCollectionLayoutSection(group: horizontalGroup)
             section.orthogonalScrollingBehavior = .continuous
             section.boundarySupplementaryItems = supplementaryViews
             return section
@@ -413,7 +464,7 @@ extension HViewController: UICollectionViewDataSource, UICollectionViewDelegate 
             let group = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1.0),
-                    heightDimension: .absolute(400)),
+                    heightDimension: .absolute(390)),
                 subitem: item,
                 count: 1)
             //section

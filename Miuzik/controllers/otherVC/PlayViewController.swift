@@ -1,6 +1,6 @@
 //
 //  PlayViewController.swift
-//  Spotify
+//  Miuzik
 //.
 //
 

@@ -76,6 +76,33 @@ class AlbumViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         
+        fetchData()
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
+                                                                    target: self,
+                                                                    action: #selector(didTapActions))
+    }
+    
+    @objc func didTapActions() {
+            let actionSheet = UIAlertController(title: album.name, message: "Actions", preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            actionSheet.addAction(UIAlertAction(title: "Save Album", style: .default, handler: { [weak self] _ in
+                guard let strongSelf = self else { return }
+                APIcaller.shared.saveAlbum(album: strongSelf.album) { success in
+                    if success {
+                        HapticsManager.shared.vibrate(for: .success)
+                        NotificationCenter.default.post(name: .albumSavedNotification, object: nil)
+                    }
+                    else {
+                        HapticsManager.shared.vibrate(for: .error)
+                    }
+                }
+            }))
+
+            present(actionSheet, animated: true)
+        }
+    
+    func fetchData() {
         APIcaller.shared.getAlbumDetails(for: album) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
@@ -92,7 +119,6 @@ class AlbumViewController: UIViewController {
                 }
             }
         }
-        
     }
     
     override func viewDidLayoutSubviews() {
@@ -116,7 +142,7 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
             for: indexPath) as? AlbumTracksCollectionViewCell else {
             return UICollectionViewCell()
         }
-        cell.backgroundColor = .orange
+//        cell.backgroundColor = .orange
         cell.configure(with: viewmodel[indexPath.row])
         return cell
     }

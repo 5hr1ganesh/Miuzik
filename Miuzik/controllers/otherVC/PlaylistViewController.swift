@@ -8,8 +8,9 @@
 import UIKit
 
 class PlaylistViewController: UIViewController {
-
+    
     private let playlist: Playlist
+    public var isOwner = false
     
     private let collectionView = UICollectionView(
         frame: .zero,
@@ -100,7 +101,58 @@ class PlaylistViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .action,
             target: self,
-            action: #selector(didTapShare))
+            action: #selector(didTapShare)
+        )
+        
+        let gesture = UILongPressGestureRecognizer(target: self,
+                                                   action: #selector(didLongPress(_:)))
+        collectionView.addGestureRecognizer(gesture)
+    }
+    
+    @objc func didLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else {
+            return
+        }
+        let touchPoint = gesture.location(in: collectionView)
+        guard let indexPath = collectionView.indexPathForItem(at: touchPoint) else {
+            return
+        }
+        let trackToDelete = tracks[indexPath.row]
+        
+        let actionSheet = UIAlertController(
+            title: trackToDelete.name,
+            message: "Would you like to remove this from the playlist?",
+            preferredStyle: .actionSheet
+        )
+        actionSheet.addAction(UIAlertAction(title: "Cancel",
+                                            style: .cancel,
+                                            handler: nil))
+        actionSheet.addAction(
+            UIAlertAction(
+                title: "Remove",
+                style: .destructive,
+                handler: { [weak self] _ in
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    APIcaller.shared.removeTrackFromPlaylist(track: trackToDelete, playlist: strongSelf.playlist) { success in
+                        DispatchQueue.main.async {
+                            if success {
+                                strongSelf.tracks.remove(at: indexPath.row)
+                                strongSelf.viewmodel.remove(at: indexPath.row)
+                                strongSelf.collectionView.reloadData()
+                            }
+                            else {
+                                print("Failed to remove")
+                            }
+                        }
+                    }
+                }
+            )
+        )
+        present(actionSheet,
+                animated: true,
+                completion: nil)
     }
     
     @objc private func didTapShare() {
@@ -145,8 +197,8 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
             ofKind: kind,
             withReuseIdentifier: PlaylistheaderCollectionReusableView.identifier,
             for: indexPath) as? PlaylistheaderCollectionReusableView,
-        
-            kind == UICollectionView.elementKindSectionHeader else {
+              
+                kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
         let headerViewModel = PlaylistHeaderVM(

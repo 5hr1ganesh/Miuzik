@@ -9,8 +9,8 @@ import UIKit
 
 class LibraryViewController: UIViewController {
     
-    private let playlistsVC = LibraryPlaylistsVC()
-    private let albumsVC = LibraryAllbumsViewController()
+    private let playlistsVC = LibraryPlaylistsViewController()
+    private let albumsVC = LibraryAlbumsViewController()
     
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -52,16 +52,15 @@ class LibraryViewController: UIViewController {
     }
     
     private func updateBarButtons() {
-        switch toggleView.state {
-        case .playlist:break
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
-        case .album:
-            navigationItem.rightBarButtonItem = nil
-        }
-    }
+            switch toggleView.state {
+            case .playlist:
+                navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
+            case .album:
+                navigationItem.rightBarButtonItem = nil
+            }    }
     
     @objc private func didTapAdd() {
-//           playlistsVC.showCreatePlaylistAlert()
+           playlistsVC.showCreatePlaylistAlert()
        }
 
        private func addChildren() {

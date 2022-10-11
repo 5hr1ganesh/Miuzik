@@ -19,7 +19,7 @@ class LibraryToggleView: UIView {
         case album
     }
 
-    var state: State = .album
+    var state: State = .playlist
 
     weak var delegate: LibraryToggleViewDelegate?
 
@@ -56,7 +56,7 @@ class LibraryToggleView: UIView {
         }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError()
     }
     
     
@@ -79,8 +79,8 @@ class LibraryToggleView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         playlistButton.frame = CGRect(x: 0, y: 0, width: 100, height: 40)
-                albumsButton.frame = CGRect(x: playlistButton.right, y: 0, width: 100, height: 40)
-                layoutIndicator()
+        albumsButton.frame = CGRect(x: playlistButton.right, y: 0, width: 100, height: 40)
+        layoutIndicator()
     }
     
     func layoutIndicator() {
