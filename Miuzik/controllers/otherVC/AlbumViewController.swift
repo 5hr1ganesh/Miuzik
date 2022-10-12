@@ -142,7 +142,7 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
             for: indexPath) as? AlbumTracksCollectionViewCell else {
             return UICollectionViewCell()
         }
-//        cell.backgroundColor = .orange
+
         cell.configure(with: viewmodel[indexPath.row])
         return cell
     }

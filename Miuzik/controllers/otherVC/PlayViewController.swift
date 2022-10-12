@@ -61,6 +61,7 @@ class PlayViewController: UIViewController {
     private func configureBarButtons() {
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(didTapClose))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapAction))
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemOrange
     }
 
     @objc private func didTapClose() {

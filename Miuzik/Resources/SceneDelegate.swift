@@ -16,7 +16,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         if loginManager.shared.isSignedin{
-            window.rootViewController = TabBarViewController()
+            let tabVC = TabBarViewController()
+            tabVC.tabBar.tintColor = UIColor.systemOrange
+            tabVC.tabBar.unselectedItemTintColor = UIColor.gray
+            window.rootViewController = tabVC
+            
         }else{
             let navVC=UINavigationController(rootViewController: WelcomeViewController())
             navVC.navigationBar.prefersLargeTitles = true
